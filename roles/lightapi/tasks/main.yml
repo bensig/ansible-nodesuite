@@ -134,4 +134,4 @@
     enabled: yes
     state: restarted
 
-- include: lightapi.yml
+- include_tasks lightapi.yml

@@ -41,7 +41,7 @@
     group: '{{ deploy_group }}'
 
 - name: Prepare block storage
-  include: prepare_block_storage.yml
+  include_tasks: prepare_block_storage.yml
   when: setup_block_storage | bool
 
 - name: Create sub directories
@@ -61,5 +61,5 @@
     - cron
 
 - name: Tune CPU params
-  include: tune_cpu.yml
+  include_tasks: tune_cpu.yml
   when: tune_cpu | bool

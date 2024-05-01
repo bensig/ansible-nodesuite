@@ -16,7 +16,7 @@
 {% set disable_replay_opts_flag = '--disable-replay-opts' if (setup_state_history | d() | bool) else empty_flag %} 
 {% set account_queries_flag = '--enable-account-queries=true' if (enable_account_queries | d() | bool) else empty_flag %}
 
-DATADIR=/opt/eosio/deploy/data
+DATADIR={{ working_dir }}/deploy/data
 
 wget {{ snapshot_base_url }} -O {{ snapshot_dir }}/{{ snapshot_tar }}
 tar -zxf {{ snapshot_dir }}/{{ snapshot_tar }} -C {{ snapshot_dir }}
@@ -26,4 +26,4 @@ tar -zxf {{ snapshot_dir }}/{{ snapshot_tar }} -C {{ snapshot_dir }}
 
 SNAPSHOT=`ls -t {{ snapshot_dir }}/*.bin | head -n1`
 
-/opt/eosio/deploy/nodeos --data-dir $DATADIR --config-dir /opt/eosio/deploy --delete-all-blocks --snapshot $SNAPSHOT 2> $DATADIR/stderr.txt &  echo $! > $DATADIR/nodeos.pid
+{{ working_dir }}/deploy/nodeos --data-dir $DATADIR --config-dir {{ working_dir }}/deploy --delete-all-blocks --snapshot $SNAPSHOT 2> $DATADIR/stderr.txt &  echo $! > $DATADIR/nodeos.pid

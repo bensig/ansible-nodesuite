@@ -1,5 +1,7 @@
 ---
 - name: Install nginx
+  become: yes
+  become_user: root
   apt:
     name: nginx
   when: setup_nginx

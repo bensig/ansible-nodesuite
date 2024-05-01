@@ -1,5 +1,7 @@
 ---
 - name: Install system dependencies
+  become: yes
+  become_user: root
   apt:
     name: software-properties-common
 

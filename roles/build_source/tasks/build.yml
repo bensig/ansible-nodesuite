@@ -30,7 +30,7 @@
   become_user: root
 
 - name: Apply patches
-  include: patch.yml
+  include_tasks patch.yml
   when: apply_patch | bool
 
 - name: Running build script

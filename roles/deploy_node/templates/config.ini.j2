@@ -28,7 +28,7 @@ read-mode = head
 {% if ((node_type == "seed") and (name != "fio")) %}
 p2p-accept-transactions = false 
 {% endif %}
-{% if http_max_response_time_ms | d() %}
+{% if (http_max_response_time_ms | d(0)) > 0 %}
 http-max-response-time-ms = {{ http_max_response_time_ms }}
 {% endif %}
 chain-threads = {{ chain_threads }}
@@ -56,16 +56,15 @@ agent-name = "{{ agent_name }}"
 {% endif %}
 
 # Optional public key of peer allowed to connect.  May be used multiple times. (eosio::net_plugin)
-# peer-key =
-{% if peer_keys %}
+{% if peer_keys is defined and peer_keys != "None" %}
 	{% for peer_key in peer_keys %}
-	peer-key = {{ peer_key }}
+		peer-key = {{ peer_key }}
 	{% endfor %}
 {% endif %}
 
-{% if peer_pubkey and peer_privkey %}
-# Tuple of [PublicKey, WIF private key] (may specify multiple times) (eosio::net_plugin)
-peer-private-key = ["{{ peer_pubkey }}", "{{ peer_privkey }}"]
+{% if peer_pubkey is defined and peer_pubkey != "None" and peer_privkey is defined and peer_privkey != "None" %}
+	# Tuple of [PublicKey, WIF private key] (may specify multiple times) (eosio::net_plugin)
+	peer-private-key = ["{{ peer_pubkey }}", "{{ peer_privkey }}"]
 {% endif %}
 
 # Number of worker threads in net_plugin thread pool (eosio::net_plugin)
@@ -78,26 +77,28 @@ p2p-listen-endpoint = {{ p2p_server_ip }}:{{ p2p_server_port }}
 {% if producer_name %}
 trusted-producer = {{ producer_name }}
 {% endif %}
-{% if last_block_time_offset_us %}
+{% if last_block_time_offset_us| default(None)%}
 last-block-time-offset-us = {{ last_block_time_offset_us }}
 {% endif %}
-{% if producer_threads %}
+{% if producer_threads|default(None)%}
 producer-threads = {{ producer_threads }}
 {% endif %}
-{% for plugin in plugins %}last-block-cpu-effort-percent
+{% for plugin in plugins %}
 plugin = {{ plugin }}
 {% endfor %}
-{% if setup_producer | bool %}
+{% if setup_producer | default(None)| bool %}
 plugin = eosio::producer_plugin
 plugin = eosio::producer_api_plugin
 producer-name = {{ producer_name }}
-{% if is_failover | bool %}
+{% if is_failover | default(None)| bool %}
 signature-provider = {{ failover_public_signing_key }}=KEY:{{ failover_private_signing_key }}
 {% else %}
 signature-provider = {{ public_signing_key }}=KEY:{{ private_signing_key }}
 {% endif %}
+{% endif %}
 
-{% if pause_on_startup %}
+
+{% if pause_on_startup | default(false)%}
 pause-on-startup = {{ pause_on_startup }}
 {% endif %}
 
@@ -110,31 +111,32 @@ plugin = eosio::state_history_plugin
 {% endif %}
 
 {% if 'leap' not in package %}
-{% if last_block_cpu_effort_percent %}
+{% if reversible-blocks-db-size-mb| default(None)%}
+reversible-blocks-db-size-mb = {{ reversible_blocks_db_size_mb }}
+{% endif %}
+{% if last_block_cpu_effort_percent| default(None)%}
 last-block-cpu-effort-percent = {{ last_block_cpu_effort_percent }}
-
-{% if not disable_subjective_api_billing | default(false) | bool %}
+{% endif %}
+{% if not disable_subjective_api_billing | default(None)| bool %}
 disable-subjective-api-billing = {{ disable_subjective_api_billing }}
 {% endif %}
-{% if not disable_subjective_p2p_billing | default(false) | bool %}
+{% if not disable_subjective_p2p_billing | default(None)| bool %}
 disable-subjective-p2p-billing = {{ disable_subjective_p2p_billing }}
 {% endif %}
 {% if cpu_effort_percent %}
 cpu-effort-percent = {{ cpu_effort_percent }}
 {% endif %}
+{% endif %}
 
-reversible-blocks-db-size-mb = {{ reversible_blocks_db_size_mb }}
-{% if txn_test_gen_threads %}
+{% if txn_test_gen_threads | default(None)%}
 txn-test-gen-threads = {{ txn_test_gen_threads }}
 {% endif %}
 
-# Plugin(s) to enable, may be specified multiple times
-# plugin =
 {% for plugin in plugins %}
 plugin = {{ plugin }}
 {% endfor %}
 
-{% if setup_state_history | d() | bool %}
+{% if setup_state_history | default(None)| bool %}
 trace-history = true
 chain-state-history = true
 state-history-endpoint = {{ state_history_server_ip }}:{{ state_history_server_port }}
