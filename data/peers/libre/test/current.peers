@@ -1,0 +1,38 @@
+# amsterdam
+p2p-peer-address = libretest.eu.eosamsterdam.net:9911
+
+# batcavelabs
+p2p-peer-address = 45.67.217.87:9876
+
+# blokcrafters
+p2p-peer-address = libretest-peer-eu.blokcrafters.io:19876
+
+# blocktime
+p2p-peer-address = libre-testnet.blocktimeinc.com:9876
+
+# cryptobloks
+p2p-peer-address = p2p.testnet.libre.cryptobloks.io:9876
+
+# Echobase
+p2p-peer-address = bp.echobaseinc.com:9876
+
+# edenia
+p2p-peer-address = libre-testnet.edenia.cloud:9881
+
+# EOSphere
+p2p-peer-address = peer1-libre-testnet.eosphere.io:9876
+
+# eosusa
+p2p-peer-address = test.libre.p2p.eosusa.io:19885
+
+# libremt
+p2p-server-address = p2p.test.libremt.com:9876
+
+# rioblocks
+p2p-peer-address = p2p-test.libre.rioblocks.io:58151
+
+# zenhash
+p2p-peer-address = p2p.phoenix.zenhash.io:9876
+
+# zuexeuz
+p2p-peer-address = p2p.phoenix.zuexeuz.net:9876

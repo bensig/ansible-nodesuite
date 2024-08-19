@@ -5,11 +5,32 @@
   become_user: root
   gather_facts: no
   pre_tasks:
-     - raw: sudo apt-get update && sudo apt-get -y install python3-pip jq zstd git 
-     - name: Include vars
-       include_vars: 'stage_vars/{{ name }}/{{ stage }}/vars.yml'
-     - name: Include vault
-       include_vars: 'stage_vars/{{ name }}/{{ stage }}/vault.yml'
+    - name: Update and install required packages
+      raw: sudo apt-get update && sudo apt-get -y install python3-pip jq zstd git
+
+    - name: Include vault variables
+      include_vars:
+        file: "stage_vars/{{ name }}/{{ stage }}/vault.yml"
+
+    - name: Debug vault variables
+      debug:
+        var: vault_vars
+    - name: Include stage-specific variables
+      include_vars:
+        file: "stage_vars/{{ name }}/{{ stage }}/vars.yml"
+
+    - name: Debug stage-specific variables
+      debug:
+        var: stage_vars
+
+    - name: Include host-specific variables
+      include_vars:
+        file: "host_vars/{{ inventory_hostname }}.yml"
+
+    - name: Debug host-specific variables
+      debug:
+        var: hostvars[inventory_hostname]
+
   roles:
     - { role: initialize_system }
 
@@ -18,10 +39,25 @@
   become: yes
   become_user: '{{ deploy_user }}'
   pre_tasks:
-     - name: Include vars
-       include_vars: 'stage_vars/{{ name }}/{{ stage }}/vars.yml'
-     - name: Include vault
-       include_vars: 'stage_vars/{{ name }}/{{ stage }}/vault.yml'
+    - name: Include vault variables
+      include_vars:
+        file: "stage_vars/{{ name }}/{{ stage }}/vault.yml"
+
+    - name: Include stage-specific variables
+      include_vars:
+        file: "stage_vars/{{ name }}/{{ stage }}/vars.yml"
+
+    - name: Include host-specific variables
+      include_vars:
+        file: "host_vars/{{ inventory_hostname }}.yml"
+
+    - name: Debug variables after inclusion
+      debug:
+        msg:
+          - "deploy_user: {{ deploy_user }}"
+          - "public_signing_key: {{ public_signing_key }}"
+          - "vault_private_signing_key: {{ vault_private_signing_key }}"
+
   roles:
     - { role: build_source }
     - { role: deploy_node }

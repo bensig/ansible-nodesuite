@@ -411,33 +411,53 @@ def setEnvironmentStageVars(base_dir, environment, overwrite):
     f.write('private_signing_key: \'{{ vault_private_signing_key }}\'\n')
 
 
-def setEnvironmentSigningKeys(base_dir, environment, overwrite):
+def setEnvironmentSigningKeys(base_dir, environment, overwrite, hostname):
     initializeConfig(path.join(base_dir, environment, 'vault.yml'), overwrite)
-    with open(path.join(base_dir, environment,'vault.yml'), 'a+') as f:
+
+    # Check if the public signing key already exists in host_vars
+    host_vars_file = os.path.join(base_dir, '.private/data/host_vars', f'{hostname}.yml')
+    host_pub_key = None
+    if os.path.exists(host_vars_file):
+        with open(host_vars_file, 'r') as host_vars:
+            host_vars_data = yaml.load(host_vars, Loader=yaml.FullLoader)
+            if 'public_signing_key' in host_vars_data:
+                host_pub_key = host_vars_data['public_signing_key']
+                logging.info(f'Public signing key found in {hostname}.yml: {host_pub_key}')
+            else:
+                logging.error(f'Public signing key not found in {hostname}.yml')
+
+    with open(path.join(base_dir, environment, 'vault.yml'), 'a+') as f:
         pub_key = ''
         priv_key = ''
-        if(NodeTypeEnum.producer in selected_node_types):
-            pub_key = getpass(f'Enter public signing key [environment: {environment}]: ')
+        if NodeTypeEnum.producer in selected_node_types:
+            if not host_pub_key:
+                pub_key = getpass(f'Enter public signing key [environment: {environment}]: ')
+            else:
+                pub_key = host_pub_key
+                click.echo(f'Using public signing key from host_vars: {pub_key}')
             priv_key = getpass(f'Enter private signing key [environment: {environment}]: ')
-            with open(path.join(base_dir, environment, 'vars.yml' ), 'a+') as stage_vars:
-                stage_vars.write(f'public_signing_key: {pub_key}\n')
-        f.write(f'vault_private_signing_key: {priv_key}\n')    
 
-        if(NodeTypeEnum.hyperion in selected_node_types):
+            if not host_pub_key:
+                with open(os.path.join(base_dir, environment, 'vars.yml'), 'a+') as stage_vars:
+                    stage_vars.write(f'public_signing_key: {pub_key}\n')
+        
+        f.write(f'vault_private_signing_key: {priv_key}\n')
+
+        if NodeTypeEnum.hyperion in selected_node_types:
             f.write(f'vault_rabbitmq_password: {vault_rabbitmq_password}\n')
             f.write(f'vault_es_api_basic_auth_password: {vault_es_api_basic_auth_password}\n')
 
-    if((environment == 'prod') and (NodeTypeEnum.producer in selected_node_types)):
+    if environment == 'prod' and NodeTypeEnum.producer in selected_node_types:
         click.echo('Encrypt your secrets (ansible-vault) now!')
         manageVault(VaultOperationEnum.encrypt.value, environment, token.name)
-    elif(NodeTypeEnum.producer in selected_node_types):
+    elif NodeTypeEnum.producer in selected_node_types:
         click.echo('Encrypt signing keys[y\\n]?')
         prompt = confirmationPrompt()
-        if(prompt == True):
+        if prompt:
             manageVault(VaultOperationEnum.encrypt.value, environment, token.name)
         else:
             click.echo('[WARNING] It is highly recommended that you encrypt your signing keys (vault.yml) at rest!')
-    
+
     click.echo('*Tip: Manage vault file encryption using the CLI vault-encrypt / vault-decrypt commands.')
 
 def initializeInventory():
